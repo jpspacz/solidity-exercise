@@ -14,9 +14,9 @@ contract BLXToken is IERC20{
     mapping(address => uint) public balances;
     mapping(address => mapping(address => uint)) public allowed;
     
-    constructor(){
-        name = "Bloxify Token";
-        symbol = "BLX";
+    constructor(string memory _name, string  memory _symbol){
+        name = _name;
+        symbol = _symbol;
         decimals = 18;
         totalSupply = 0;
     }
