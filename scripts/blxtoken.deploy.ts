@@ -5,7 +5,7 @@ async function main() {
   const Factory = await ethers.getContractFactory("BLXToken");
 
   // We deploy the contract
-  const contract = await Factory.deploy(/* ...args */);
+  const contract = await Factory.deploy("Bloxify Token", "BLX");
   await contract.deployed();
 
   console.log("Contract deployed to:", contract.address);
