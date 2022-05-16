@@ -66,6 +66,36 @@ describe("BLX Token contract", function () {
     await contract.transfer(addr2.address, 50);
     assert.equal(await contract.totalSupply(), 200);
 
-  })
+  });
+
+  it("transfer should not work if you don't have enough funds", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    // check if you can send 200 while only owning 100
+    await contract.mint(100);
+    try{
+      await contract.transfer(addr2.address, 200);
+      assert(false);
+    } catch (err){
+      assert(err);
+    }
+  });
+
+  it("transfer should add and subtract balances correctly for sender and recipient", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    await contract.mint(100);
+    await contract.transfer(addr2.address, 30);
+
+    // check if senders balance has decreased
+    assert.equal(await contract.balanceOf(addr1.address), 70);
+
+    // check if recipient got his funds
+    assert.equal(await contract.balanceOf(addr2.address), 30);
+  });
 
 });
