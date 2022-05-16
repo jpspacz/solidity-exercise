@@ -45,4 +45,27 @@ describe("BLX Token contract", function () {
 
   });
 
+  it("initialSupply should increase with every new mint and not change with transfer", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    // check totalSupply before minting
+    assert.equal(await contract.totalSupply(), 0);
+
+    // mint 100 and check if amount increased
+    await contract.mint(100);
+    assert.equal(await contract.totalSupply(), 100);
+
+    // mint 100 using different address
+    await contract.connect(addr2).mint(100);
+
+    assert.equal(await contract.totalSupply(), 200);
+
+    // make a transfer and see if totalSupply has changed
+    await contract.transfer(addr2.address, 50);
+    assert.equal(await contract.totalSupply(), 200);
+
+  })
+
 });
