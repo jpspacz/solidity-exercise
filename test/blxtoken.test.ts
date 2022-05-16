@@ -1,3 +1,4 @@
+const { expect } = require("chai");
 import { ethers } from "hardhat";
 const assert = require("assert");
 
@@ -96,6 +97,20 @@ describe("BLX Token contract", function () {
 
     // check if recipient got his funds
     assert.equal(await contract.balanceOf(addr2.address), 30);
+  });
+
+  it("functin should not let you approve more funds than you own", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    // approving funds before minting any
+    await expect( contract.approve(addr2.address, 10)).to.be.revertedWith('Not enough funds');
+
+    // approving more funds than on balance
+    await contract.mint(100);
+    await expect( contract.approve(addr2.address, 200)).to.be.revertedWith('Not enough funds');
+
   });
 
 });
