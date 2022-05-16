@@ -109,4 +109,25 @@ describe("BLX Token contract", function () {
 
   });
 
+  it ("allowance should change properly with new approve calls", async function () {
+    const [addr1, addr2, addr3] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    await contract.mint(100);
+    await contract.approve(addr2.address, 70);
+    await contract.approve(addr3.address, 30);
+
+    // check if allowance is added correctyly 
+    assert.equal(await contract.allowance(addr1.address, addr2.address), 70);
+    assert.equal(await contract.allowance(addr1.address, addr3.address), 30);
+
+    await contract.approve(addr2.address, 90);
+    await contract.approve(addr3.address, 5);
+
+    // check if allowance is overridden 
+    assert.equal(await contract.allowance(addr1.address, addr2.address), 90);
+    assert.equal(await contract.allowance(addr1.address, addr3.address), 5);
+  });
+
 });
