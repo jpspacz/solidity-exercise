@@ -130,4 +130,35 @@ describe("BLX Token contract", function () {
     assert.equal(await contract.allowance(addr1.address, addr3.address), 5);
   });
 
+  it("transferFrom should allow to send allowed tokens, change balances and allowance amount", async function () {
+    const [addr1, addr2, addr3] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    // mint and approve funds
+    await contract.mint(100);
+    await contract.approve(addr2.address, 70);
+
+    // send funds approved by addr1
+    await contract.connect(addr2).transferFrom(addr1.address, addr3.address, 50);
+
+    assert.equal(await contract.balanceOf(addr1.address), 50);
+    assert.equal(await contract.allowance(addr1.address, addr2.address), 20);
+    
+  });
+
+  it("transferFrom should not allow to send more than allowed amount", async function () {
+    const [addr1, addr2, addr3] = await ethers.getSigners();
+    const factory = await ethers.getContractFactory("BLXToken");
+    const contract = await factory.deploy("Bloxify Token", "BLX");
+
+    // mint and approve funds
+    await contract.mint(100);
+    await contract.approve(addr2.address, 70);
+    
+    // try to send more funds than approved
+    await expect(contract.connect(addr2).transferFrom(addr1.address, addr3.address, 80)).to.be.revertedWith('Access to funds restricted');
+    
+  });
+    
 });
