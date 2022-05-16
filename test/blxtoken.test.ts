@@ -76,12 +76,8 @@ describe("BLX Token contract", function () {
 
     // check if you can send 200 while only owning 100
     await contract.mint(100);
-    try{
-      await contract.transfer(addr2.address, 200);
-      assert(false);
-    } catch (err){
-      assert(err);
-    }
+    await expect( contract.transfer(addr2.address, 200)).to.be.revertedWith('Not enough funds');
+
   });
 
   it("transfer should add and subtract balances correctly for sender and recipient", async function () {
