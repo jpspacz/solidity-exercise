@@ -8,7 +8,7 @@ contract BLXToken is IERC20{
 
     string public name;
     string public symbol;
-    uint256 public decimals;
+    uint public decimals;
     uint public override totalSupply;
 
     mapping(address => uint) public balances;
@@ -44,7 +44,7 @@ contract BLXToken is IERC20{
         return true;
     }
 
-    function allowance(address owner, address spender) public view override returns(uint256){
+    function allowance(address owner, address spender) public view override returns(uint){
         return allowed[owner][spender];
     }
 
@@ -54,7 +54,6 @@ contract BLXToken is IERC20{
 
         allowed[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
-
         return true;
     }
 
