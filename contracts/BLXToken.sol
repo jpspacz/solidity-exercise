@@ -21,9 +21,13 @@ contract BLXToken is IERC20{
         totalSupply = 0;
     }
 
-    function mint(uint amount) public {
+    event Mint(address minter, uint amount);
+
+    function mint(uint amount) public returns(bool){
         balances[msg.sender] += amount;
         totalSupply += amount;
+        emit Mint(msg.sender, amount);
+        return true;
     }
 
     function balanceOf(address user) public view returns (uint){
