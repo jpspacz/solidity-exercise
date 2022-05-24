@@ -1,10 +1,46 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.13;
 
-contract BLXBank {
-    string public greeting;
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-    constructor() {
-        greeting = "Hello you";
+contract BLXBank is Ownable, Pausable{
+    
+    uint public bankBalance;
+    address public tokenAddress;
+
+    constructor(address _tokenAddress){
+        tokenAddress = _tokenAddress;
     }
+
+    struct BankAccount {
+        uint256 createdAt;
+        uint256 balance;
+        uint256 transactionsCount;
+        bool isActive;
+    }
+
+    mapping(address => BankAccount) private userAccount;
+
+    function accountInformation(address user) public view returns(uint, uint, uint, bool){
+        require(msg.sender == user, "You are not the owner");
+        return(userAccount[msg.sender].createdAt, userAccount[msg.sender].balance, userAccount[msg.sender].transactionsCount, userAccount[msg.sender].isActive);
+    }
+    
+    function deposit(uint amount) public {
+        bankBalance+=amount;
+        require(IERC20(tokenAddress).balanceOf(msg.sender) >= amount, "Not enough funds");
+        require(IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount), "Contract not approved as spender");
+
+        if(userAccount[msg.sender].createdAt == 0){
+            userAccount[msg.sender].createdAt = block.timestamp;
+            userAccount[msg.sender].isActive = true;
+        }
+
+        userAccount[msg.sender].transactionsCount += 1;
+        userAccount[msg.sender].balance += amount;
+
+    }
+
 }
