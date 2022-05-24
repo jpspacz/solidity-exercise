@@ -12,3 +12,6 @@ artifacts
 #IDE files
 .idea
 .vscode
+
+# keys
+secret.json
