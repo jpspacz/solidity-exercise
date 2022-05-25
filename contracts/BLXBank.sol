@@ -22,6 +22,7 @@ contract BLXBank is Ownable, Pausable{
     }
 
     mapping(address => BankAccount) private userAccount;
+    uint public accountNo;
 
     modifier active(){
         require(userAccount[msg.sender].isActive == true, "You have to be an active user");
@@ -34,7 +35,7 @@ contract BLXBank is Ownable, Pausable{
     event InternalTransfer(address from, address to, uint amount);
 
     function accountInformation(address user) public view returns(uint, uint, uint, bool){
-        require(msg.sender == user, "You are not the owner");
+        require(msg.sender == user, "You are not the address owner");
         return(userAccount[msg.sender].createdAt, userAccount[msg.sender].balance, userAccount[msg.sender].transactionsCount, userAccount[msg.sender].isActive);
     }
     
@@ -46,6 +47,7 @@ contract BLXBank is Ownable, Pausable{
         if(userAccount[msg.sender].createdAt == 0){
             userAccount[msg.sender].createdAt = block.timestamp;
             userAccount[msg.sender].isActive = true;
+            accountNo +=1;
         }
 
         userAccount[msg.sender].transactionsCount += 1;
@@ -69,6 +71,7 @@ contract BLXBank is Ownable, Pausable{
         userAccount[msg.sender].createdAt = 0;
         userAccount[msg.sender].transactionsCount = 0;
         emit Deactivate(msg.sender);
+        accountNo -= 1;
     }
 
     function internalTransfer(address to, uint amount) public active{
@@ -88,7 +91,4 @@ contract BLXBank is Ownable, Pausable{
     function unpauseDeposits() public onlyOwner {
         _unpause();
     }
-
-
-
 }

@@ -213,5 +213,28 @@ describe("BLX Bank contract", function () {
     await expect(bankContract.connect(addr2).unpauseDeposits()).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
+  it("check if if number of user accounts changes correctly", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+
+    //create account 1
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100);
+    //create account 2
+    await tokenContract.connect(addr2).mint(100);
+    await tokenContract.connect(addr2).approve(bankContract.address, 100);
+    await bankContract.connect(addr2).deposit(100);
+
+    //check if both accounts exist
+    assert.equal(await bankContract.accountNo(), 2);
+
+    // delete an account
+    await bankContract.withdraw(100);
+    await bankContract.deactivate();
+
+    // check if inly one account exists
+    assert.equal(await bankContract.accountNo(), 1);
+  });
+
 });
 
