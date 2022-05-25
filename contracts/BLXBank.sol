@@ -54,4 +54,11 @@ contract BLXBank is Ownable, Pausable{
         require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer failed");
     }
 
+    function deactivate() public active{
+        require(userAccount[msg.sender].balance == 0, "Withdraw your funds before deactivation");
+        userAccount[msg.sender].isActive = false;
+        userAccount[msg.sender].createdAt = 0;
+        userAccount[msg.sender].transactionsCount = 0;
+    }
+
 }

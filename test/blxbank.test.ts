@@ -126,8 +126,36 @@ describe("BLX Bank contract", function () {
   });
 
   it("check owner", async function () {
-    console.log(await bankContract.owner());
     assert.notEqual(await bankContract.owner(), "0x0000000000000000000000000000000000000000");
+  });
+
+  it("check if you can deactivate account with funds in it", async function () {
+    // activate account
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100)
+
+    // check if you can deactivate with funds
+    await expect(bankContract.deactivate()).to.be.revertedWith('Withdraw your funds before deactivation');
+  });
+
+  it("check if deactivation resets account data", async function () {
+    // activate account
+    const [addr1] = await ethers.getSigners();
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100)
+
+    // deactivate account
+    await bankContract.withdraw(100);
+    await bankContract.deactivate();
+
+    // check if data is reset to default
+    const[creationTime, balance, txNum, active] = await bankContract.accountInformation(addr1.address);
+    assert.equal(creationTime.toNumber(), 0);
+    assert.equal(balance.toNumber(), 0);
+    assert.equal(txNum.toNumber(), 0);
+    assert.equal(active, false);
   });
 
 });
