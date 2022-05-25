@@ -35,8 +35,8 @@ contract BLXBank is Ownable, Pausable{
     event InternalTransfer(address from, address to, uint amount);
 
     function accountInformation(address user) public view returns(uint, uint, uint, bool){
-        require(msg.sender == user, "You are not the address owner");
-        return(userAccount[msg.sender].createdAt, userAccount[msg.sender].balance, userAccount[msg.sender].transactionsCount, userAccount[msg.sender].isActive);
+
+        return(userAccount[user].createdAt, userAccount[user].balance, userAccount[user].transactionsCount, userAccount[user].isActive);
     }
     
     function deposit(uint amount) public whenNotPaused{
