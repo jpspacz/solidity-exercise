@@ -23,16 +23,21 @@ contract BLXBank is Ownable, Pausable{
 
     mapping(address => BankAccount) private userAccount;
 
+    modifier active(){
+        require(userAccount[msg.sender].isActive == true, "You have to be an active user");
+        _;
+    }
+
     function accountInformation(address user) public view returns(uint, uint, uint, bool){
         require(msg.sender == user, "You are not the owner");
         return(userAccount[msg.sender].createdAt, userAccount[msg.sender].balance, userAccount[msg.sender].transactionsCount, userAccount[msg.sender].isActive);
     }
     
     function deposit(uint amount) public {
-        bankBalance+=amount;
         require(IERC20(tokenAddress).balanceOf(msg.sender) >= amount, "Not enough funds");
         require(IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount), "Contract not approved as spender");
 
+        bankBalance+=amount;
         if(userAccount[msg.sender].createdAt == 0){
             userAccount[msg.sender].createdAt = block.timestamp;
             userAccount[msg.sender].isActive = true;
@@ -40,7 +45,13 @@ contract BLXBank is Ownable, Pausable{
 
         userAccount[msg.sender].transactionsCount += 1;
         userAccount[msg.sender].balance += amount;
+    }
 
+    function withdraw(uint amount) public active{
+        require(userAccount[msg.sender].balance >= amount, "Not enough funds");
+        bankBalance-=amount;
+        userAccount[msg.sender].balance -= amount;
+        require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer failed");
     }
 
 }
