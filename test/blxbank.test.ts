@@ -193,6 +193,25 @@ describe("BLX Bank contract", function () {
     await expect(bankContract.internalTransfer(addr2.address, 50)).to.be.revertedWith("can't transfer to inactive account");
   });
 
+  it("check if you can deposit while paused", async function () {
+    //pasue deposits
+    await bankContract.pauseDeposits()
+
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+
+    //try to deposit while paused 
+    await expect(bankContract.deposit(100)).to.be.revertedWith("Pausable: paused");
+
+  });
+
+  it("check if only owner can change paused state", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+
+    // try to change state as not owner
+    await expect(bankContract.connect(addr2).pauseDeposits()).to.be.revertedWith("Ownable: caller is not the owner");
+    await expect(bankContract.connect(addr2).unpauseDeposits()).to.be.revertedWith("Ownable: caller is not the owner");
+  });
 
 });
 
