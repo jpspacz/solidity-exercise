@@ -28,6 +28,11 @@ contract BLXBank is Ownable, Pausable{
         _;
     }
 
+    event Deposit(address account, uint amount);
+    event Withdraw(address account, uint amount);
+    event Deactivate(address account);
+    event InternalTransfer(address from, address to, uint amount);
+
     function accountInformation(address user) public view returns(uint, uint, uint, bool){
         require(msg.sender == user, "You are not the owner");
         return(userAccount[msg.sender].createdAt, userAccount[msg.sender].balance, userAccount[msg.sender].transactionsCount, userAccount[msg.sender].isActive);
@@ -45,6 +50,8 @@ contract BLXBank is Ownable, Pausable{
 
         userAccount[msg.sender].transactionsCount += 1;
         userAccount[msg.sender].balance += amount;
+
+        emit Deposit(msg.sender, amount);
     }
 
     function withdraw(uint amount) public active {
@@ -53,6 +60,7 @@ contract BLXBank is Ownable, Pausable{
         userAccount[msg.sender].transactionsCount+=1;
         userAccount[msg.sender].balance -= amount;
         require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer failed");
+        emit Withdraw(msg.sender, amount);
     }
 
     function deactivate() public active{
@@ -60,6 +68,7 @@ contract BLXBank is Ownable, Pausable{
         userAccount[msg.sender].isActive = false;
         userAccount[msg.sender].createdAt = 0;
         userAccount[msg.sender].transactionsCount = 0;
+        emit Deactivate(msg.sender);
     }
 
     function internalTransfer(address to, uint amount) public active{
@@ -69,6 +78,7 @@ contract BLXBank is Ownable, Pausable{
         userAccount[to].transactionsCount += 1;
         userAccount[msg.sender].balance -= amount;
         userAccount[to].balance += amount;
+        emit InternalTransfer(msg.sender, to, amount);
     }
 
     function pauseDeposits() public onlyOwner {
