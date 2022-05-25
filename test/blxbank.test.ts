@@ -75,6 +75,60 @@ describe("BLX Bank contract", function () {
 
   });
 
+  it("user before creation is inactive and changes after creation", async function () {
+    const [addr1] = await ethers.getSigners();
+
+    // check user before creation
+    const[creationTime, balance, txNum, active] = await bankContract.accountInformation(addr1.address);
+    assert.equal(creationTime.toNumber(), 0);
+    assert.equal(balance.toNumber(), 0);
+    assert.equal(txNum.toNumber(), 0);
+    assert.equal(active, false);
+
+    // deposit funds - create user
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100)
+  
+    // check user after creation
+    const[creationTimeAfter, balanceAfter, txNumAfter, activeAfter] = await bankContract.accountInformation(addr1.address);
+    assert.notEqual(creationTimeAfter.toNumber(), 0);
+    assert.equal(balanceAfter.toNumber(), 100);
+    assert.equal(txNumAfter.toNumber(), 1);
+    assert.equal(activeAfter, true);
+
+  });
+
+  it("check global bank amount", async function () {
+    const [addr1, addr2] = await ethers.getSigners();
+
+    // check bank balance before any deposits
+    assert.equal(await bankContract.bankBalance(), 0);
+
+    // deposit funds user 1
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100)
+
+    // deposit funds user 2
+    await tokenContract.connect(addr2).mint(50);
+    await tokenContract.connect(addr2).approve(bankContract.address, 50);
+    await bankContract.connect(addr2).deposit(50)
+    
+    // check bank balance after two seperate deposits
+    assert.equal(await bankContract.bankBalance(), 150);
+
+    // withdraw from account
+    await bankContract.connect(addr2).withdraw(20);
+
+    // check if balance changes after withdrawl
+    assert.equal(await bankContract.bankBalance(), 130);
+  });
+
+  it("check owner", async function () {
+    console.log(await bankContract.owner());
+    assert.notEqual(await bankContract.owner(), "0x0000000000000000000000000000000000000000");
+  });
 
 });
 
