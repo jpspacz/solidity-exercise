@@ -50,6 +50,7 @@ contract BLXBank is Ownable, Pausable{
     function withdraw(uint amount) public active{
         require(userAccount[msg.sender].balance >= amount, "Not enough funds");
         bankBalance-=amount;
+        userAccount[msg.sender].transactionsCount+=1;
         userAccount[msg.sender].balance -= amount;
         require(IERC20(tokenAddress).transfer(msg.sender, amount), "Transfer failed");
     }
@@ -59,6 +60,15 @@ contract BLXBank is Ownable, Pausable{
         userAccount[msg.sender].isActive = false;
         userAccount[msg.sender].createdAt = 0;
         userAccount[msg.sender].transactionsCount = 0;
+    }
+
+    function internalTransfer(address to, uint amount) public active(){
+        require(userAccount[to].isActive == true,  "can't transfer to inactive account");
+        require(userAccount[msg.sender].balance >= amount);
+        userAccount[msg.sender].transactionsCount += 1;
+        userAccount[to].transactionsCount += 1;
+        userAccount[msg.sender].balance -= amount;
+        userAccount[to].balance += amount;
     }
 
 }

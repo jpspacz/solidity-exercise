@@ -158,5 +158,41 @@ describe("BLX Bank contract", function () {
     assert.equal(active, false);
   });
 
+  it("check if internal transfer changes balances correctly", async function () {
+    // activate account 1
+    const [addr1, addr2] = await ethers.getSigners();
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100);
+
+    //activate account 2
+    await tokenContract.connect(addr2).mint(200);
+    await tokenContract.connect(addr2).approve(bankContract.address, 200);
+    await bankContract.connect(addr2).deposit(200);
+
+    // internal transfer from acc2 -> acc1
+    await bankContract.connect(addr2).internalTransfer(addr1.address, 200);
+
+    // check if addr1 balance grew
+    const[, balance, , ] = await bankContract.accountInformation(addr1.address);
+    assert.equal(balance.toNumber(), 300);
+    // check if addr2 balance got smaller
+    const[, balance2, , ] = await bankContract.connect(addr2).accountInformation(addr2.address);
+    assert.equal(balance2.toNumber(), 0);
+
+  });
+
+  it("check if internal transfer works with sending to a deactivated account", async function () {
+    // activate account 1
+    const [addr1, addr2] = await ethers.getSigners();
+    await tokenContract.mint(100);
+    await tokenContract.approve(bankContract.address, 100);
+    await bankContract.deposit(100);
+
+    // send to deactivated account
+    await expect(bankContract.internalTransfer(addr2.address, 50)).to.be.revertedWith("can't transfer to inactive account");
+  });
+
+
 });
 
